@@ -1,0 +1,53 @@
+version: 2
+
+defaults: &defaults
+    working_directory: ~/repo
+    docker:
+       - image: google/cloud-sdk:latest
+
+references:
+  - restore_code: &restore_code
+      restore_cache:
+        key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+  - restore_dependencies: &restore_dependencies
+      restore_cache:
+        key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
+
+jobs:
+  checkout_code:
+    <<: *defaults
+    steps:
+      - checkout
+      - save_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ./
+
+  build_dependencies:
+    <<: *defaults
+
+    steps:
+      - *restore_code
+      - *restore_dependencies
+      - run:
+          name: install dependencies
+          command: |
+            gcloud components list
+            echo test
+            echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
+            gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+            gcloud config set project memoq
+      - save_cache:
+          key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ./
+
+ 
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - checkout_code
+      - build_dependencies:
+          requires:
+            - checkout_code
