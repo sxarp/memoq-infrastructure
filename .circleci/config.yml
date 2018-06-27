@@ -1,0 +1,50 @@
+version: 2
+
+defaults: &defaults
+    working_directory: ~/repo
+    docker:
+       - image: google/cloud-sdk:latest
+
+references:
+  - restore_code: &restore_code
+      restore_cache:
+        key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+  - restore_dependencies: &restore_dependencies
+      restore_cache:
+        key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
+
+jobs:
+  checkout_code:
+    <<: *defaults
+    steps:
+      - checkout
+      - save_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ./
+
+  build_dependencies:
+    <<: *defaults
+
+    steps:
+      - *restore_code
+      - *restore_dependencies
+      - run:
+          name: install dependencies
+          command: |
+            echo test
+            gcloud
+      - save_cache:
+          key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ./
+
+ 
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - checkout_code
+      - build_dependencies:
+          requires:
+            - checkout_code
