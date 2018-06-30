@@ -4,6 +4,9 @@ defaults: &defaults
     working_directory: ~/repo
     docker:
        - image: google/cloud-sdk:latest
+         env:
+           - PROJECT_NAME=memoq-backend
+           - DEPLOYMENT_NAME=test-deployment
 
 references:
   - restore_code: &restore_code
@@ -36,12 +39,30 @@ jobs:
             echo test
             echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
-            gcloud config set project memoq
+            gcloud config set project $PROJECT_NAME
       - save_cache:
           key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - ./
+            - /root/
+  preview_change:
+    <<: *defaults
 
+    steps:
+      - *restore_code
+      - *restore_dependencies
+      - run:
+          name: preview
+          command: gcloud deployment-manager deployments update $DEPLOYMENT_NAME --config test-vm-deployment.yaml --preview
+
+  apply_change:
+    <<: *defaults
+
+    steps:
+      - *restore_code
+      - *restore_dependencies
+      - run:
+          name: apply
+          command: gcloud deployment-manager deployments update $DEPLOYMENT_NAME
  
 workflows:
   version: 2
@@ -51,3 +72,17 @@ workflows:
       - build_dependencies:
           requires:
             - checkout_code
+      - preview_change:
+          requires:
+            - build_dependencies
+      - hold_to_apply:
+          type: approval
+          requires:
+            - preview_change
+          filters:
+            branches:
+              only:
+                - master
+      - apply_change:
+          requires:
+            - hold_to_apply
