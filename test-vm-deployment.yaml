@@ -1,0 +1,6 @@
+imports:
+- path: test-vm-deployment.jinja
+
+resources:
+- name: test-instances
+  type: test-vm-deployment.jinja

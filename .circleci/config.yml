@@ -36,12 +36,20 @@ jobs:
             echo test
             echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
-            gcloud config set project memoq
+            gcloud config set project memoq-backend
       - save_cache:
           key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - ./
+            - /root/
+  preview_change:
+    <<: *defaults
 
+    steps:
+      - *restore_code
+      - *restore_dependencies
+      - run:
+          name: preview
+          command: gcloud deployment-manager deployments update test-deployment --config test-vm-deployment.yaml --preview
  
 workflows:
   version: 2
@@ -51,3 +59,6 @@ workflows:
       - build_dependencies:
           requires:
             - checkout_code
+      - preview_change:
+          requires:
+            - build_dependencies
