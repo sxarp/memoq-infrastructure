@@ -6,7 +6,8 @@ defaults: &defaults
        - image: google/cloud-sdk:latest
          env:
            - PROJECT_NAME=memoq-backend
-           - DEPLOYMENT_NAME=test-deployment
+           - DEPLOYMENT_NAME=resources-v1
+           - RESOURCES_YAML=resources.yaml
 
 references:
   - restore_code: &restore_code
@@ -52,7 +53,7 @@ jobs:
       - *restore_dependencies
       - run:
           name: preview
-          command: gcloud deployment-manager deployments update $DEPLOYMENT_NAME --config test-vm-deployment.yaml --preview
+          command: gcloud deployment-manager deployments update $DEPLOYMENT_NAME --config $RESOURCES_YAML --preview
 
   apply_change:
     <<: *defaults

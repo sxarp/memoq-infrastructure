@@ -1,0 +1,11 @@
+required:
+- zone
+- nodeCount
+
+properties:
+  zone:
+    type: string
+    description: Zone in which the cluster should run.
+  nodeCount:
+    type: integer
+    description: Number of nodes desired in the cluster.

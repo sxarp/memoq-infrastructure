@@ -1,0 +1,9 @@
+imports:
+- path: cluster.jinja
+
+resources:
+- name: my-cluster
+  type: cluster.jinja
+  properties:
+    zone: asia-northeast1-c
+    nodeCount: 3
