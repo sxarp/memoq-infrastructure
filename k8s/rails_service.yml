@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: rails-service
+spec:
+  selector:
+    app: rails
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
