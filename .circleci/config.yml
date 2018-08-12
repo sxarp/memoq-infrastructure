@@ -3,11 +3,12 @@ version: 2
 defaults: &defaults
     working_directory: ~/repo
     docker:
-       - image: google/cloud-sdk:latest
+       - image: google/cloud-sdk:206.0.0
          env:
            - PROJECT_NAME=memoq-backend
            - DEPLOYMENT_NAME=resources-v1
            - RESOURCES_YAML=resources.yaml
+           - helm=~/repo/bin/helm
 
 references:
   - restore_code: &restore_code
@@ -29,25 +30,25 @@ jobs:
 
   build_dependencies:
     <<: *defaults
-
     steps:
       - *restore_code
       - *restore_dependencies
       - run:
           name: install dependencies
           command: |
-            gcloud components list
-            echo test
+            export PATH=~/repo/bin:$PATH
             echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
             gcloud config set project $PROJECT_NAME
+            gcloud container clusters get-credentials resources-v1-my-cluster --zone asia-northeast1-c
+            helm init --client-only
+            helm repo update
       - save_cache:
           key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /root/
   preview_change:
     <<: *defaults
-
     steps:
       - *restore_code
       - *restore_dependencies
@@ -57,7 +58,6 @@ jobs:
 
   apply_change:
     <<: *defaults
-
     steps:
       - *restore_code
       - *restore_dependencies
@@ -67,7 +67,6 @@ jobs:
 
   delete_and_create:
     <<: *defaults
-
     steps:
       - *restore_code
       - *restore_dependencies
@@ -78,6 +77,17 @@ jobs:
           name: create
           command: gcloud deployment-manager deployments create $DEPLOYMENT_NAME --config $RESOURCES_YAML
  
+  set_up_cloud_sql_proxy:
+    <<: *defaults
+    steps:
+      - *restore_code
+      - *restore_dependencies
+      - run:
+          name: helm install
+          command: |
+            export PATH=~/repo/bin:$PATH
+            ./k8s/helm/gcloud-sqlproxy/deploy.sh staging $CLOUD_SQL_SERVICE_ACCOUNT_KEY
+
 workflows:
   version: 2
   build_and_deploy:
@@ -111,3 +121,10 @@ workflows:
       - delete_and_create:
           requires:
             - hold_to_delete_and_create
+      - hold_to_set_up_cloud_sql_proxy:
+          type: approval
+          requires:
+            - build_dependencies
+      - set_up_cloud_sql_proxy:
+          requires:
+            - hold_to_set_up_cloud_sql_proxy
