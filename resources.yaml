@@ -6,4 +6,4 @@ resources:
   type: cluster.jinja
   properties:
     zone: asia-northeast1-c
-    nodeCount: 1
+    nodeCount: 2
