@@ -5,26 +5,19 @@
 replicaCount: 1
 
 image:
-  repository: nginx
-  tag: stable
+  repository: gcr.io/memoq-backend/rails
+  tag: latest
   pullPolicy: IfNotPresent
+  port: 3000
 
 service:
   type: ClusterIP
   port: 80
 
 ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  path: /
-  hosts:
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
