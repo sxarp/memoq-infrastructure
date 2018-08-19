@@ -9,6 +9,8 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
   port: 3000
+  db_user: "dummy_user"
+  db_password: "dummy_password"
 
 service:
   type: ClusterIP
