@@ -103,10 +103,11 @@ workflows:
           type: approval
           requires:
             - preview_change
-          filters:
-            branches:
-              only:
-                - master
+          # todo: filter branches
+          #filters:
+          #  branches:
+          #    only:
+          #      - master
       - apply_change:
           requires:
             - hold_to_apply
