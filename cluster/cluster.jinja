@@ -8,7 +8,7 @@ resources:
     zone: {{ properties['zone'] }}
     cluster:
       name: {{ CLUSTER_NAME }}
-      initialNodeCount: {{ properties['nodeCount'] }}
+      initialNodeCount: 0
       nodeConfig:
         oauthScopes:
         - https://www.googleapis.com/auth/compute
@@ -19,7 +19,7 @@ resources:
       autoscaling:
         enabled: true
         minNodeCount: 0
-        maxNodeCount: 1
+        maxNodeCount: 0
 
 - name: {{ CLUSTER_NAME }}-n1-standard-2
   type: container.v1.nodePool
@@ -32,7 +32,7 @@ resources:
       autoscaling:
         enabled: true
         minNodeCount: 0
-        maxNodeCount: 1
+        maxNodeCount: {{ properties['nodeCount'] }}
       management:
         autoUpgrade: true
         autoRepair: true
