@@ -16,6 +16,10 @@ resources:
         - https://www.googleapis.com/auth/logging.write
         - https://www.googleapis.com/auth/monitoring
         diskSizeGb: 20
+      autoscaling:
+        enabled: true
+        minNodeCount: 0
+        maxNodeCount: 1
 
 - name: {{ CLUSTER_NAME }}-n1-standard-2
   type: container.v1.nodePool
