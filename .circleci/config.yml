@@ -10,6 +10,11 @@ defaults: &defaults
            - RESOURCES_YAML=resources.yaml
            - helm=~/repo/bin/helm
 
+terraform: &terraform
+    working_directory: ~/repo/terraform
+    docker:
+       - image: hashicorp/terraform:0.11.8
+
 references:
   - restore_code: &restore_code
       restore_cache:
@@ -87,6 +92,11 @@ jobs:
           command: |
             export PATH=~/repo/bin:$PATH
             ./k8s/helm/gcloud-sqlproxy/deploy.sh staging $CLOUD_SQL_SERVICE_ACCOUNT_KEY
+  terraform_plan:
+    <<: *terraform
+    steps:
+      - run: terraform init
+      - run: terraform plan
 
 workflows:
   version: 2
@@ -129,3 +139,8 @@ workflows:
       - set_up_cloud_sql_proxy:
           requires:
             - hold_to_set_up_cloud_sql_proxy
+      - terraform_plan:
+          filters:
+            branches:
+              only:
+                - /.*-tf/
