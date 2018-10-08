@@ -1,9 +1,9 @@
 imports:
-- path: cluster.jinja
+- path: cluster/cluster.jinja
 
 resources:
 - name: my-cluster
-  type: cluster.jinja
+  type: cluster/cluster.jinja
   properties:
     zone: asia-northeast1-c
-    nodeCount: 2
+    nodeCount: 1
