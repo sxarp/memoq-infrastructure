@@ -160,7 +160,7 @@ workflows:
           filters:
             branches:
               only:
-                - /.*-tf/
+                - /terraform.*/
                 - master
       - hold_to_terraform_apply:
           type: approval
