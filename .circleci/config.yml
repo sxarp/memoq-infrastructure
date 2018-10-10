@@ -11,7 +11,7 @@ defaults: &defaults
            - helm=~/repo/bin/helm
 
 terraform: &terraform
-    working_directory: ~/repo/terraform
+    working_directory: ~/repo/aws
     docker:
        - image: hashicorp/terraform:0.11.8
 
@@ -96,7 +96,6 @@ jobs:
     <<: *terraform
     steps:
       - run: terraform init
-      - run: terraform plan
 
 workflows:
   version: 2
