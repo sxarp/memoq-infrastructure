@@ -102,6 +102,16 @@ jobs:
             echo $AWS_CREDENTIALS | base64 -d > credentials
       - run: terraform init
       - run: terraform plan
+  terraform_apply:
+    <<: *terraform
+    steps:
+      - *restore_code
+      - run:
+          name: set aws credentials
+          command: |
+            echo $AWS_CREDENTIALS | base64 -d > credentials
+      - run: terraform init
+      - run: terraform apply -auto-approve
 
 workflows:
   version: 2
@@ -151,3 +161,15 @@ workflows:
             branches:
               only:
                 - /.*-tf/
+                - master
+      - hold_to_terraform_apply:
+          type: approval
+          requires:
+            - terraform_plan
+      - terraform_apply:
+          requires:
+            - hold_to_terraform_apply
+          filters:
+            branches:
+              only:
+                - master
