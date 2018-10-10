@@ -96,6 +96,10 @@ jobs:
     <<: *terraform
     steps:
       - *restore_code
+      - run:
+          name: set aws credentials
+          command: |
+            echo $AWS_CREDENTIALS | base64 -d > credentials
       - run: terraform init
       - run: terraform plan
 
@@ -141,6 +145,8 @@ workflows:
           requires:
             - hold_to_set_up_cloud_sql_proxy
       - terraform_plan:
+          requires:
+            - checkout_code
           filters:
             branches:
               only:
