@@ -7,9 +7,9 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket = "sxarp-terraform"
-    key    = "state"
-    region = "ap-northeast-1"
+    bucket                  = "sxarp-terraform"
+    key                     = "state"
+    region                  = "ap-northeast-1"
     shared_credentials_file = "credentials"
     profile                 = "terraform"
   }
@@ -24,6 +24,6 @@ resource "aws_s3_bucket" "terraform" {
   }
 
   tags {
-    Name        = "terraform"
+    Name = "terraform"
   }
 }
