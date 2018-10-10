@@ -95,7 +95,9 @@ jobs:
   terraform_plan:
     <<: *terraform
     steps:
+      - *restore_code
       - run: terraform init
+      - run: terraform plan
 
 workflows:
   version: 2
