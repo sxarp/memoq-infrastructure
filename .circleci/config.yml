@@ -121,6 +121,11 @@ workflows:
       - build_dependencies:
           requires:
             - checkout_code
+          filters:
+            branches:
+              only:
+                - /gcp\/.*/
+                - master
       - preview_change:
           requires:
             - build_dependencies
@@ -160,7 +165,7 @@ workflows:
           filters:
             branches:
               only:
-                - /terraform.*/
+                - /aws\/.*/
                 - master
       - hold_to_terraform_apply:
           type: approval
