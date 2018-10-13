@@ -33,7 +33,7 @@ jobs:
           paths:
             - ./
 
-  build_dependencies:
+  gcp_build_dependencies:
     <<: *defaults
     steps:
       - *restore_code
@@ -52,7 +52,7 @@ jobs:
           key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /root/
-  preview_change:
+  gcp_preview_change:
     <<: *defaults
     steps:
       - *restore_code
@@ -61,7 +61,7 @@ jobs:
           name: preview
           command: gcloud deployment-manager deployments update $DEPLOYMENT_NAME --config $RESOURCES_YAML --preview
 
-  apply_change:
+  gcp_apply_change:
     <<: *defaults
     steps:
       - *restore_code
@@ -70,7 +70,7 @@ jobs:
           name: apply
           command: gcloud deployment-manager deployments update $DEPLOYMENT_NAME
 
-  delete_and_create:
+  gcp_delete_and_create:
     <<: *defaults
     steps:
       - *restore_code
@@ -82,7 +82,7 @@ jobs:
           name: create
           command: gcloud deployment-manager deployments create $DEPLOYMENT_NAME --config $RESOURCES_YAML
  
-  set_up_cloud_sql_proxy:
+  gcp_set_up_cloud_sql_proxy:
     <<: *defaults
     steps:
       - *restore_code
@@ -118,7 +118,7 @@ workflows:
   build_and_deploy:
     jobs:
       - checkout_code
-      - build_dependencies:
+      - gcp_build_dependencies:
           requires:
             - checkout_code
           filters:
@@ -126,39 +126,40 @@ workflows:
               only:
                 - /gcp\/.*/
                 - master
-      - preview_change:
+      - gcp_preview_change:
           requires:
-            - build_dependencies
-      - hold_to_apply:
+            - gcp_build_dependencies
+      - gcp_hold_to_apply:
           type: approval
           requires:
-            - preview_change
+            - gcp_preview_change
           # todo: filter branches
           #filters:
           #  branches:
           #    only:
           #      - master
-      - apply_change:
+      - gcp_apply_change:
           requires:
-            - hold_to_apply
-      - hold_to_delete_and_create:
+            - gcp_hold_to_apply
+      - gcp_hold_to_delete_and_create:
           type: approval
           requires:
-            - preview_change
+            - gcp_preview_change
           filters:
             branches:
               only:
                 - master
-      - delete_and_create:
+                - /gcp\/hotfix\/.*/
+      - gcp_delete_and_create:
           requires:
-            - hold_to_delete_and_create
-      - hold_to_set_up_cloud_sql_proxy:
+            - gcp_hold_to_delete_and_create
+      - gcp_hold_to_set_up_cloud_sql_proxy:
           type: approval
           requires:
-            - build_dependencies
-      - set_up_cloud_sql_proxy:
+            - gcp_build_dependencies
+      - gcp_set_up_cloud_sql_proxy:
           requires:
-            - hold_to_set_up_cloud_sql_proxy
+            - gcp_hold_to_set_up_cloud_sql_proxy
       - terraform_plan:
           requires:
             - checkout_code
