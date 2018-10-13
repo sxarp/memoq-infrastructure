@@ -19,9 +19,9 @@ references:
   - restore_code: &restore_code
       restore_cache:
         key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-  - restore_dependencies: &restore_dependencies
+  - gcp_restore_dependencies: &gcp_restore_dependencies
       restore_cache:
-        key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
+        key: gcp_dependencies-{{ .Environment.CIRCLE_SHA1 }}
 
 jobs:
   checkout_code:
@@ -37,7 +37,7 @@ jobs:
     <<: *defaults
     steps:
       - *restore_code
-      - *restore_dependencies
+      - *gcp_restore_dependencies
       - run:
           name: install dependencies
           command: |
@@ -45,18 +45,15 @@ jobs:
             echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
             gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
             gcloud config set project $PROJECT_NAME
-            gcloud container clusters get-credentials resources-v1-my-cluster --zone asia-northeast1-c
-            helm init --client-only
-            helm repo update
       - save_cache:
-          key: dependencies-{{ .Environment.CIRCLE_SHA1 }}
+          key: gcp_dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /root/
   gcp_preview_change:
     <<: *defaults
     steps:
       - *restore_code
-      - *restore_dependencies
+      - *gcp_restore_dependencies
       - run:
           name: preview
           command: gcloud deployment-manager deployments update $DEPLOYMENT_NAME --config $RESOURCES_YAML --preview
@@ -65,7 +62,7 @@ jobs:
     <<: *defaults
     steps:
       - *restore_code
-      - *restore_dependencies
+      - *gcp_restore_dependencies
       - run:
           name: apply
           command: gcloud deployment-manager deployments update $DEPLOYMENT_NAME
@@ -74,7 +71,7 @@ jobs:
     <<: *defaults
     steps:
       - *restore_code
-      - *restore_dependencies
+      - *gcp_restore_dependencies
       - run:
           name: delete
           command: gcloud deployment-manager deployments delete $DEPLOYMENT_NAME -q
@@ -86,11 +83,14 @@ jobs:
     <<: *defaults
     steps:
       - *restore_code
-      - *restore_dependencies
+      - *gcp_restore_dependencies
       - run:
           name: helm install
           command: |
             export PATH=~/repo/bin:$PATH
+            gcloud container clusters get-credentials resources-v1-my-cluster --zone asia-northeast1-c
+            helm init --client-only
+            helm repo update
             ./k8s/helm/gcloud-sqlproxy/deploy.sh staging $CLOUD_SQL_SERVICE_ACCOUNT_KEY
   terraform_plan:
     <<: *terraform
