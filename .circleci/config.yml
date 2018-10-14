@@ -6,7 +6,7 @@ defaults: &defaults
        - image: google/cloud-sdk:206.0.0
          env:
            - PROJECT_NAME=memoq-backend
-           - DEPLOYMENT_NAME=resources-v1
+           - DEPLOYMENT_NAME=resources-v2
            - RESOURCES_YAML=resources.yaml
            - helm=~/repo/bin/helm
 
