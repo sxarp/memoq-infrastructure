@@ -27,7 +27,7 @@ resources:
       initialNodeCount: 1
       autoscaling:
         enabled: true
-        minNodeCount: 0
+        minNodeCount: 1
         maxNodeCount: {{ properties['nodeCount'] }}
       management:
         autoUpgrade: true
